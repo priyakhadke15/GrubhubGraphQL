@@ -1,13 +1,14 @@
 var createError = require('http-errors');
 var express = require('express');
-const graphqlHTTP = require('express-graphql');
+const typeDefs = require('./graphql/typedefs/userSchema');
+const resolvers = require('./graphql/resolvers/userResolvers');
+const { ApolloServer } = require('apollo-server-express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 const { initDb } = require('./config');
 
-const schema = require('./schema/schema');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var restaurantRouter = require('./routes/restaurant');
@@ -52,7 +53,7 @@ app.use(`/api/${apiVersion}/users`, usersRouter);
 app.use(`/api/${apiVersion}/restaurant`, restaurantRouter);
 app.use(`/api/${apiVersion}/item`, itemRouter);
 app.use(`/api/${apiVersion}/order`, orderRouter);
-app.use("/graphql", graphqlHTTP({ schema, graphiql: true }));
+new ApolloServer({ typeDefs, resolvers }).applyMiddleware({ app, path: "/graphql" });
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -69,7 +70,5 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-app.listen(8080, () => {
-  console.log("GraphQL server started on port 8080");
-})
+
 module.exports = app;
