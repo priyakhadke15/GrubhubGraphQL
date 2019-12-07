@@ -1,0 +1,28 @@
+.left {
+  width: 50%;
+  margin-right: 50px;
+}
+
+.right {
+  flex-grow: 1;
+  margin-left: 5px;
+}
+
+.namediv {
+  width: 100%;
+  display:flex
+}
+
+.inputfirstname {
+  width: 80%; 
+  margin-right: 20px
+}
+
+.inputlastname {
+  flex-grow: 1;
+}
+
+.checkbox {
+  margin-bottom: 45px;
+  margin-top: 15px
+}
