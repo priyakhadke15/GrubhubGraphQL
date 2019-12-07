@@ -3,8 +3,8 @@ const { getPersons } = require('../../DAL');
 
 module.exports = {
     Query: {
-        persons: async () => {
-            const { results } = await getPersons();
+        persons: async (parent, person) => {
+            const { results } = await getPersons(person);
             return results;
         }
     }

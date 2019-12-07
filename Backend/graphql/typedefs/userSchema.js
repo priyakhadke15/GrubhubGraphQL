@@ -13,6 +13,6 @@ module.exports = gql`
     }
 
     type Query {
-        persons: [Person]
+        persons(id: ID, email: String, password: String): [Person]
     }
 `;

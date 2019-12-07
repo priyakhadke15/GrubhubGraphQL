@@ -1,7 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
-const typeDefs = require('./graphql/typedefs/userSchema');
-const resolvers = require('./graphql/resolvers/userResolvers');
+const { typeDefs, resolvers } = require('./graphql');
 const { ApolloServer } = require('apollo-server-express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
