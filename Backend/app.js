@@ -6,13 +6,15 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
-const { initDb } = require('./config');
+const jwt = require('jsonwebtoken');
+const { initDb, jwtsecret } = require('./config');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var restaurantRouter = require('./routes/restaurant');
 var itemRouter = require('./routes/item');
 var orderRouter = require('./routes/order');
+const { getPersons } = require('./DAL');
 
 var app = express();
 
@@ -52,7 +54,32 @@ app.use(`/api/${apiVersion}/users`, usersRouter);
 app.use(`/api/${apiVersion}/restaurant`, restaurantRouter);
 app.use(`/api/${apiVersion}/item`, itemRouter);
 app.use(`/api/${apiVersion}/order`, orderRouter);
-new ApolloServer({ typeDefs, resolvers }).applyMiddleware({ app, path: "/graphql" });
+app.use(async (req, res, next) => {
+  const { authCookie } = req.cookies;
+  if (!authCookie) {
+    return res.status(401).json({ message: "please login to continue" });
+  }
+
+  try {
+    const { id } = jwt.verify(authCookie, jwtsecret);
+    const { results } = await getPersons({ id });
+    if (!Array.isArray(results) || results.length !== 1) {
+      throw new Error(`user ${id} not found`);
+    }
+    const [user] = results;
+    delete user.password;
+    req.user = user;
+  } catch (e) {
+    delete req.cookies.authCookie;
+    return res.status(401).json({ message: "please login to continue" });
+  }
+  next();
+});
+new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ req }) => ({ req })
+}).applyMiddleware({ app, path: "/graphql" });
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
