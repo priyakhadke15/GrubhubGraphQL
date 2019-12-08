@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { login, logout } from '../actions';
+import { withApollo } from 'react-apollo';
+import { compose } from 'react-apollo';
+import { getIemsQuery } from '../graphql/';
 
 class SiteDescription extends Component {
 
@@ -20,19 +23,22 @@ class SiteDescription extends Component {
         const sleep = msec => new Promise(r => setTimeout(r, msec));
         try {
             this.props.toggleSpinner('Searching...');
-            const response = await fetch(`/api/v1/item?itemName=${this.searchRef.current.value}`);
-            const res = await response.json();
             await sleep(1000);
             this.props.toggleSpinner();
-            if (response.status === 200) {
+            //Graphql
+            this.props.client.query({
+                query: getIemsQuery(`${this.searchRef.current.value}`)
+            }).then(result => {
+                const res = result.data.items;
+                console.log(res);
                 const cuisine = this.cuisineRef.current.value;
                 this.setState({
                     msg: '',
                     items: !!cuisine ? res.filter(i => cuisine === i.cuisine) : res
                 });
-            } else if (response.status === 401) {
-                this.setState({ msg: 'please login to continue...' });
-            }
+            }).catch(err => {
+                this.setState({ msg: err });
+            });
         } catch (e) {
             await sleep(1000);
             this.props.toggleSpinner();
@@ -136,4 +142,8 @@ const mapDispatchToProps = dispatch => ({
     logout: () => dispatch(logout())
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(SiteDescription);
+// export default connect(mapStateToProps, mapDispatchToProps)(SiteDescription);
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    withApollo,
+)(SiteDescription);
