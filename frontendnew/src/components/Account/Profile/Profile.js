@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { getPersonsQuery } from '../../../graphql/';
-import { graphql } from 'react-apollo';
+import { withApollo } from 'react-apollo';
 
 class Profile extends Component {
 
@@ -21,22 +21,23 @@ class Profile extends Component {
         const sleep = msec => new Promise(r => setTimeout(r, msec));
         try {
             this.props.toggleSpinner('Loading...');
-            const response = await fetch('/api/v1/users/profile');
-            const { email, firstName: firstname, lastName: lastname, profileImage } = await response.json();
-            await sleep(1000);
-            this.props.toggleSpinner();
-            if (response.status === 200) {
+            //Try with graphql
+            this.props.client.query({
+                query: getPersonsQuery
+            }).then(async (result) => {
+                console.log(result.data.profile);
+                const response = result.data.profile
+                const { email, firstName: firstname, lastName: lastname, profileImage } = response;
+                this.props.toggleSpinner();
+                await sleep(1000);
                 this.setState({
                     profileImage: !profileImage || profileImage === 'undefined' ? '/pic.png' : profileImage,
                     email, firstname, lastname
                 });
-            } else if (response.status === 401) {
-                this.setState({ msg: 'please login to continue...' });
-            }
-            //Try with graphql
-            var data = this.props.data;
-            console.log(data.profile);
-
+            }).catch(err => {
+                console.error(err);
+                this.setState({ msg: err });
+            });
         } catch (e) {
             await sleep(1000);
             this.props.toggleSpinner();
@@ -112,5 +113,4 @@ class Profile extends Component {
             </form>
         )
     }
-} //export default Profile;
-export default graphql(getPersonsQuery)(Profile);
+} export default withApollo(Profile);
