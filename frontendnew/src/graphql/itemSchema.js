@@ -10,6 +10,7 @@ const getIemsQuery = (itemName) => gql`
             cuisine
             iDesc
             price
+            name
           } 
     }
 `;
