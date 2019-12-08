@@ -3,6 +3,9 @@ import './Menu.css';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { login, logout, getCart, setCart } from '../../actions';
+import { compose } from 'react-apollo';
+import { withApollo } from 'react-apollo';
+import { getMenuQuery } from '../../graphql/';
 
 class Menu extends Component {
     constructor(props) {
@@ -41,11 +44,13 @@ class Menu extends Component {
         const sleep = msec => new Promise(r => setTimeout(r, msec));
         try {
             this.props.toggleSpinner("Fetching....");
-            const response = await fetch(`/api/v1/restaurant/item${this.state.restaurantId ? `?restaurantId=${this.state.restaurantId}` : ''}`);
-            const body = await response.json();
             await sleep(1500);
             this.props.toggleSpinner();
-            if (response.status === 200) {
+            //Graphql
+            this.props.client.query({
+                query: getMenuQuery(`${this.state.restaurantId ? `${this.state.restaurantId}` : ''}`)
+            }).then(result => {
+                const body = result.data.items;
                 this.setState({
                     restaurantName: Array.isArray(body) && body.length > 0 ? body[0].name : '',
                     items: body.reduce((acc, item) => {
@@ -53,13 +58,18 @@ class Menu extends Component {
                         return acc;
                     }, {})
                 });
-            } else {
-                this.setState({ msg: body.message });
-            }
+                console.log(body);
+            }).catch(err => {
+                this.setState({ msg: err });
+
+            });
+            // const response = await fetch(`/api/v1/restaurant/item${this.state.restaurantId ? `?restaurantId=${this.state.restaurantId}` : ''}`);
+            // const body = await response.json();
         } catch (e) {
             this.props.toggleSpinner();
             this.setState({ msg: e.message || e });
         }
+
     }
 
     componentDidMount() {
@@ -282,4 +292,8 @@ const mapDispatchToProps = dispatch => ({
     setCart: cart => dispatch(setCart(cart))
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Menu);
+// export default connect(mapStateToProps, mapDispatchToProps)(Menu);
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    withApollo,
+)(Menu);

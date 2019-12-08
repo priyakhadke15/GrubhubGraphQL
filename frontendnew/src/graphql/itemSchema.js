@@ -14,5 +14,20 @@ const getIemsQuery = (itemName) => gql`
           } 
     }
 `;
+const getMenuQuery = (restaurantId) => gql`
+    {
+        items(restaurantId:"${restaurantId}") {
+            itemID
+            iImage
+            restaurantId
+            itemName
+            cuisine
+            iDesc
+            price
+            name
+            secName
+          } 
+    }
+`;
 
-export { getIemsQuery };
+export { getIemsQuery, getMenuQuery };
