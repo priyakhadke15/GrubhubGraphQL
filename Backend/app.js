@@ -39,7 +39,6 @@ app.set('view engine', 'ejs');
 //use cors to allow cross origin resource sharing
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -79,7 +78,7 @@ new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ req }) => ({ req })
-}).applyMiddleware({ app, path: "/graphql" });
+}).applyMiddleware({ app, path: "/graphql", cors: false });
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
