@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { gql } from 'apollo-boost';
 import { withApollo } from 'react-apollo';
+import { getorderdetailsQuery } from '../../../graphql/';
 
 class OrderDetail extends Component {
 
@@ -12,45 +12,25 @@ class OrderDetail extends Component {
             items: [],
             orderID
         }
-        props.client.query({
-            query: gql`
-                {
-                    orderdetails(orderID: "2d6b90a9-b1d7-406d-bf56-bb4c61fcab6b") {
-                        iDesc
-                        price
-                        itemName
-                    }
-                }
-            `
-        }).then(result => {
-            console.log(result);
-        }).catch(err => {
-            console.error(err);
-        });
     }
     async componentDidMount() {
         const sleep = msec => new Promise(r => setTimeout(r, msec));
         try {
             this.props.toggleSpinner("Fetching...");
-            const response = await fetch(`/api/v1/order/details?orderID=${this.state.orderID}`, {
-                method: 'get',
-                mode: "cors",
-                redirect: 'follow',
-                headers: {
-                    'content-type': 'application/json'
-                }
-            });
-            const res = await response.json();
             await sleep(1000);
             this.props.toggleSpinner();
-            if (response.status === 200) {
+            //try graphql
+            this.props.client.query({
+                query: getorderdetailsQuery(`${this.state.orderID}`)
+            }).then(result => {
+                console.log(result);
                 this.setState({
                     msg: '',
-                    items: res
+                    items: result.data.orderdetails
                 });
-            } else if (response.status === 401) {
-                this.setState({ msg: 'please login to continue...' });
-            }
+            }).catch(err => {
+                this.setState({ msg: err });
+            });
         }
         catch (e) {
             await sleep(1000);
@@ -86,5 +66,4 @@ class OrderDetail extends Component {
         )
     }
 }
-
 export default withApollo(OrderDetail);
