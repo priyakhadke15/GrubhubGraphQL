@@ -2,11 +2,13 @@
 
 // require all typedefs
 const userSchema = require('./typedefs/userSchema');
+const itemSchema = require('./typedefs/itemSchema');
 
 // require all resolvers
-const userResolver = require('./resolvers/userResolvers');
+const userResolvers = require('./resolvers/userResolvers');
+const itemResolvers = require('./resolvers/itemResolvers');
 
 module.exports = {
-    typeDefs: [userSchema],
-    resolvers: [userResolver]
+    typeDefs: [userSchema, itemSchema],
+    resolvers: [userResolvers, itemResolvers]
 };
