@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { getPersonsQuery } from '../../../graphql/';
+import { graphql } from 'react-apollo';
 
 class Profile extends Component {
 
@@ -31,6 +33,10 @@ class Profile extends Component {
             } else if (response.status === 401) {
                 this.setState({ msg: 'please login to continue...' });
             }
+            //Try with graphql
+            var data = this.props.data;
+            console.log(data.profile);
+
         } catch (e) {
             await sleep(1000);
             this.props.toggleSpinner();
@@ -106,4 +112,5 @@ class Profile extends Component {
             </form>
         )
     }
-} export default Profile;
+} //export default Profile;
+export default graphql(getPersonsQuery)(Profile);

@@ -1,13 +1,15 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter } from 'react-router-dom';
-import Main from './components/Main'
+import Main from './components/Main';
 import ApolloClient from 'apollo-boost';
-import { ApolloProvider } from '@apollo/react-hooks';
+import { ApolloProvider } from 'react-apollo';
 
+// apollo client setup
 const client = new ApolloClient({
   uri: 'http://localhost:3001/graphql',
   credentials: 'include',
+
 });
 
 function App() {
