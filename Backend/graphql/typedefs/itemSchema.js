@@ -19,6 +19,6 @@ module.exports = gql`
     }
 
     extend type Query {
-        items(itemID: ID, itemName: String): [Item]
+        items(itemID: ID, itemName: String, restaurantId: String): [Item]
     }
 `;
