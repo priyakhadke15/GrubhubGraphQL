@@ -29,5 +29,22 @@ const getMenuQuery = (restaurantId) => gql`
           } 
     }
 `;
+const editItemMutation = ({ itemName, iDesc, price, secName }) => {
+    const updateThese = [];
+    itemName && (updateThese.push(`itemName:"${itemName}"`));
+    iDesc && (updateThese.push(`iDesc:"${iDesc}"`));
+    price && (updateThese.push(`price:${price}`));
+    secName && (updateThese.push(`secName:"${secName}"`));
+    return gql`
+        mutation {
+            item (${updateThese.join(" ")}) {
+                itemName
+                iDesc
+                price
+                secName
+            }
+        }
+    `;
+};
 
-export { getIemsQuery, getMenuQuery };
+export { getIemsQuery, getMenuQuery, editItemMutation };

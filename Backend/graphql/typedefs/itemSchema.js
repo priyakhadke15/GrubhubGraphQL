@@ -21,4 +21,8 @@ module.exports = gql`
     extend type Query {
         items(itemID: ID, itemName: String, restaurantId: String): [Item]
     }
+
+   extend type Mutation {
+        item(itemID: String, restaurantId: String, itemName: String, iDesc: String,price: Float,secName:String): Item
+    }
 `;

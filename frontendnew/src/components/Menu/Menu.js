@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { login, logout, getCart, setCart } from '../../actions';
 import { compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
-import { getMenuQuery } from '../../graphql/';
+import { getMenuQuery, editItemMutation } from '../../graphql/';
 
 class Menu extends Component {
     constructor(props) {
@@ -58,7 +58,6 @@ class Menu extends Component {
                         return acc;
                     }, {})
                 });
-                console.log(body);
             }).catch(err => {
                 this.setState({ msg: err });
             });
@@ -88,19 +87,30 @@ class Menu extends Component {
             }
             this.state.imageTargetFile && dataform.append('itemImage', this.state.imageTargetFile);
             this.props.toggleSpinner("Adding...");
-            const response = await fetch('/api/v1/item', {
-                method: 'POST',
-                mode: "cors",
-                redirect: 'follow',
-                body: dataform
+            // const response = await fetch('/api/v1/item', {
+            //     method: 'POST',
+            //     mode: "cors",
+            //     redirect: 'follow',
+            //     body: dataform
+            // });
+            // this.props.toggleSpinner();
+            // if (response.status !== 200) {
+            //     const body = await response.json();
+            //     this.setState({ msg: body.message || body.msg });
+            // } else {
+            //     this.repaintMenu();
+            // }
+            this.props.client.mutate({
+                mutation: editItemMutation(data)
+            }).then(async response => {
+                //   await sleep(2000);
+                console.log("added");
+                this.props.toggleSpinner();
+            }).catch(async err => {
+                //  await sleep(2000);
+                this.props.toggleSpinner();
+                this.setState({ msg: err.message || err })
             });
-            this.props.toggleSpinner();
-            if (response.status !== 200) {
-                const body = await response.json();
-                this.setState({ msg: body.message || body.msg });
-            } else {
-                this.repaintMenu();
-            }
         } catch (err) {
             this.props.toggleSpinner();
             this.setState({ msg: err.message || err });
