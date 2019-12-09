@@ -19,6 +19,7 @@ module.exports = gql`
     }
 
     type Mutation {
-        profile(email: String, firstName: String, lastName: String, password: String): Person
+        profile(email: String, firstName: String, lastName: String, password: String): Person,
+        signup(email: String!, firstName: String!, lastName: String!, password: String!, restName: String, restZipCode: Int, isSeller: String): Person
     }
 `;

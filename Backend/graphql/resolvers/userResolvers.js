@@ -1,8 +1,9 @@
 'use strict';
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const uuidv4 = require('uuid/v4');
 const { encrAlgorithm, encrSecret, jwtsecret } = require('../../config');
-const { getPersons, editPerson } = require('../../DAL');
+const { getPersons, editPerson, savePerson, saveRestaurant } = require('../../DAL');
 
 const _encrypt = password => {
     const cipher = crypto.createCipher(encrAlgorithm, encrSecret);
@@ -59,6 +60,42 @@ module.exports = {
                 await editPerson(person);
             }
             return req.user;
+        },
+        signup: async (parent, person, { req }) => {
+            const { email, password, firstName, lastName, restName, restZipCode, isSeller: isSlr } = person;
+            const isSeller = isSlr === 'true' || isSlr === true;
+
+            let restaurant = null;
+            if (isSeller) {
+                if (!(restName && restZipCode)) {
+                    console.error('save users, mandatory seller info missing');
+                    return { id: "id", ...person };
+                } else {
+                    restaurant = {
+                        restaurantId: uuidv4(),
+                        ownerId: uuidv4(),
+                        name: restName,
+                        address: '',
+                        cuisine: '',
+                        image: '',
+                        zipcode: restZipCode
+                    }
+                }
+            }
+
+            const newUser = {
+                id: restaurant ? restaurant.ownerId : uuidv4(),
+                password: _encrypt(password),
+                isSeller, email, firstName, lastName
+            }
+            try {
+                await savePerson(newUser);
+                isSeller && (await saveRestaurant(restaurant));
+                return newUser;
+            } catch (e) {
+                console.error('error creating a new user or restaurant', e);
+                return { id: "id", ...person };
+            }
         }
     }
 };
