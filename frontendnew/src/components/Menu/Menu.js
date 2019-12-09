@@ -61,15 +61,11 @@ class Menu extends Component {
                 console.log(body);
             }).catch(err => {
                 this.setState({ msg: err });
-
             });
-            // const response = await fetch(`/api/v1/restaurant/item${this.state.restaurantId ? `?restaurantId=${this.state.restaurantId}` : ''}`);
-            // const body = await response.json();
         } catch (e) {
             this.props.toggleSpinner();
             this.setState({ msg: e.message || e });
         }
-
     }
 
     componentDidMount() {
