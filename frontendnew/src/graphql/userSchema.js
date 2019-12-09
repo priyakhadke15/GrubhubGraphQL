@@ -11,6 +11,18 @@ const getPersonsQuery = gql`
     }
 `;
 
+const loginQuery = ({ email, password }) => {
+    return gql`
+        {
+            login (email:"${email}", password:"${password}") {
+                email
+                firstName
+                lastName
+            } 
+        }
+    `;
+};
+
 const editProfileMutation = ({ email, password, firstName, lastName }) => {
     const updateThese = [];
     email && (updateThese.push(`email:"${email}"`));
@@ -29,4 +41,4 @@ const editProfileMutation = ({ email, password, firstName, lastName }) => {
     `;
 };
 
-export { getPersonsQuery, editProfileMutation };
+export { getPersonsQuery, loginQuery, editProfileMutation };

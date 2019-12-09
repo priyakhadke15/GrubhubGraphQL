@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import './Login.css';
+import { compose, withApollo } from 'react-apollo';
 import { Link } from 'react-router-dom';
 import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import { login, logout } from '../../actions';
+import { loginQuery } from '../../graphql';
 
 class Login extends Component {
     constructor(props) {
@@ -27,25 +29,15 @@ class Login extends Component {
             password: this.state.password
         }
         this.props.toggleSpinner("Logging you in....");
-        fetch('/api/v1/users/login', {
-            method: 'post',
-            mode: "cors",
-            redirect: 'follow',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(async function (response) {
-            const body = await response.json();
-            return { status: response.status, body };
+        this.props.client.query({
+            query: loginQuery(data)
         }).then(async response => {
             await sleep(2000);
             this.props.toggleSpinner();
-            if (response.status === 200) {
-                await sleep(500);
-                this.props.login();
+            if (response.data.login.email === "fake") {
+                this.setState({ msg: "invalid credentials" });
             } else {
-                this.setState({ msg: response.body.message });
+                this.props.login();
             }
         }).catch(async err => {
             await sleep(2000);
@@ -97,4 +89,7 @@ const mapDispatchToProps = dispatch => ({
     logout: () => dispatch(logout())
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    withApollo
+)(Login);
