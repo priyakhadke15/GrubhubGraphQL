@@ -56,6 +56,18 @@ app.use(`/api/${apiVersion}/order`, orderRouter);
 app.use(async (req, res, next) => {
   const { authCookie } = req.cookies;
   if (!authCookie) {
+    // allow only "login" and "signup" graphql request if !authCookie
+    const { path, method, body } = req;
+    const parsedBody = typeof body.query === "string" ? body.query.replace(/\\n/g, "") : "";
+    const isGraphqlPost = method === "POST" && path === "/graphql";
+    const isLogin = parsedBody.includes("login") && parsedBody.includes("email") && parsedBody.includes("password");
+    const isSignup = parsedBody.includes("signup") && parsedBody.includes("email") && parsedBody.includes("password") &&
+      parsedBody.includes("firstName") && parsedBody.includes("lastName") && parsedBody.includes("isSeller");
+    if (isGraphqlPost && (isLogin || isSignup)) {
+      return next();
+    }
+
+    // reject any other request
     return res.status(401).json({ message: "please login to continue" });
   }
 
@@ -77,7 +89,7 @@ app.use(async (req, res, next) => {
 new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => ({ req })
+  context: ({ req, res }) => ({ req, res })
 }).applyMiddleware({ app, path: "/graphql", cors: false });
 
 // catch 404 and forward to error handler
