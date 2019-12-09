@@ -1,5 +1,5 @@
 'use strict';
-const { getPersons } = require('../../DAL');
+const { getPersons, editPerson } = require('../../DAL');
 
 module.exports = {
     Query: {
@@ -7,8 +7,14 @@ module.exports = {
             const { results } = await getPersons(person);
             return results;
         },
+        profile: (parent, person, { req }) => req.user
+    },
+    Mutation: {
         profile: async (parent, person, { req }) => {
-            console.log(req.user);
+            if (Object.keys(person).length > 0) {
+                person.id = req.user.id;
+                await editPerson(person);
+            }
             return req.user;
         }
     }

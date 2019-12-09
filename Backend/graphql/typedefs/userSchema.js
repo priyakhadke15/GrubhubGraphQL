@@ -16,4 +16,8 @@ module.exports = gql`
         persons(id: ID, email: String, password: String): [Person],
         profile: Person
     }
+
+    type Mutation {
+        profile(email: String, firstName: String, lastName: String, password: String): Person
+    }
 `;

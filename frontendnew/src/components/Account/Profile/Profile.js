@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getPersonsQuery } from '../../../graphql/';
+import { getPersonsQuery, editProfileMutation } from '../../../graphql/';
 import { withApollo } from 'react-apollo';
 
 class Profile extends Component {
@@ -25,17 +25,17 @@ class Profile extends Component {
             this.props.client.query({
                 query: getPersonsQuery
             }).then(async (result) => {
-                console.log(result.data.profile);
                 const response = result.data.profile
                 const { email, firstName: firstname, lastName: lastname, profileImage } = response;
-                this.props.toggleSpinner();
                 await sleep(1000);
+                this.props.toggleSpinner();
                 this.setState({
                     profileImage: !profileImage || profileImage === 'undefined' ? '/pic.png' : profileImage,
                     email, firstname, lastname
                 });
             }).catch(err => {
                 console.error(err);
+                this.props.toggleSpinner();
                 this.setState({ msg: err });
             });
         } catch (e) {
@@ -54,32 +54,49 @@ class Profile extends Component {
             lastName: this.state.lastname
         };
         this.state.password && (data.password = this.state.password);
-        const dataform = new FormData();
-        for (const key in data) {
-            dataform.append(key, data[key]);
-        }
-        this.state.imageTargetFile && dataform.append('profileImage', this.state.imageTargetFile);
-        this.props.toggleSpinner('Updating your info....');
-        fetch('/api/v1/users/profile', {
-            method: 'put',
-            mode: "cors",
-            redirect: 'follow',
-            body: dataform
-        }).then(async (response) => {
-            const body = await response.json();
-            await sleep(2000);
-            this.props.toggleSpinner();
-            if (response.status === 200) {
-                await sleep(500);
-                this.setState({ msg: body.message })
-            } else {
-                this.setState({ msg: body.message });
+
+        // still need to use the old PUT /profile route for uploading images
+        // non images edits can go over graphql
+        if (this.state.imageTargetFile) {
+            const dataform = new FormData();
+            for (const key in data) {
+                dataform.append(key, data[key]);
             }
-        }).catch(async err => {
-            await sleep(2000);
-            this.props.toggleSpinner();
-            this.setState({ msg: err.message || err })
-        });
+            dataform.append('profileImage', this.state.imageTargetFile);
+            this.props.toggleSpinner('Updating your info....');
+            fetch('/api/v1/users/profile', {
+                method: 'put',
+                mode: "cors",
+                redirect: 'follow',
+                body: dataform
+            }).then(async (response) => {
+                const body = await response.json();
+                await sleep(2000);
+                this.props.toggleSpinner();
+                if (response.status === 200) {
+                    await sleep(500);
+                    this.setState({ msg: body.message })
+                } else {
+                    this.setState({ msg: body.message });
+                }
+            }).catch(async err => {
+                await sleep(2000);
+                this.props.toggleSpinner();
+                this.setState({ msg: err.message || err })
+            });
+        } else {
+            this.props.toggleSpinner('Updating your info....');
+            this.props.client.mutate({
+                mutation: editProfileMutation(data)
+            }).then(async response => {
+                await sleep(2000);
+                this.props.toggleSpinner();
+            }).catch(async err => {
+                await sleep(2000);
+                this.props.toggleSpinner();
+                this.setState({ msg: err.message || err })
+            });
+        }
     }
 
     onImageSelect(event) {
