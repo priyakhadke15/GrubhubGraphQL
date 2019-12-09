@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import './Signup.css';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { compose, withApollo } from 'react-apollo';
 import { signup } from '../../actions';
+import { signupMutation } from '../../graphql';
 
 class Signup extends Component {
     constructor(props) {
@@ -40,24 +42,19 @@ class Signup extends Component {
         const sleep = msec => new Promise(r => setTimeout(r, msec));
         this.props.toggleSpinner('Creating account...');
         try {
-            const response = await fetch('/api/v1/users', {
-                method: 'post',
-                mode: "cors",
-                redirect: 'follow',
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: JSON.stringify(person)
+            this.props.client.mutate({
+                mutation: signupMutation(person)
+            }).then(async response => {
+                await sleep(2000);
+                this.props.toggleSpinner();
+                this.setState({ message: 'account created successfully! please login to continue...' });
+                this.props.signup();
+            }).catch(async err => {
+                await sleep(2000);
+                this.props.toggleSpinner();
+                console.error('signup error', err);
+                this.setState({ message: err.message });
             });
-            const body = await response.json();
-            console.log(body);
-            await sleep(2000);
-            this.props.toggleSpinner();
-            if (response.status === 200) {
-                console.log('calling redux signup');
-                this.props.signup(person.email);
-            }
-            this.setState({ message: response.status === 200 ? 'account created successfully! please login to continue...' : body.message });
         } catch (e) {
             await sleep(2000);
             this.props.toggleSpinner();
@@ -112,4 +109,7 @@ const mapDispatchToProps = dispatch => ({
 }
 );
 
-export default connect(mapStateToProps, mapDispatchToProps)(Signup);
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    withApollo
+)(Signup);
